@@ -14,7 +14,7 @@ public:
   void translate(float x, float y);
   void rotate(float angle);
   void moveForward(float distance);
-  void reset(float bodyWidth, float bodyHeight, float x, float y);
+  void reset(float x, float y);
   void calculateAirbornPosition();
   bool hasCollidedWith(Target target);
   bool hasCollidedWithWindow();
@@ -26,6 +26,7 @@ public:
 
 private:
   int windowWidth, windowHeight;
+  float bodyWidth, bodyHeight;
   float vertex[5][2];
   float tx, ty;
   float velocity;

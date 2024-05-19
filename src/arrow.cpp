@@ -1,14 +1,17 @@
 #include "arrow.h"
 #include "target.h"
 #include <GL/freeglut.h>
-#include <cstdio>
 #include <math.h>
+
+const float PI = 3.14159265358979323846;
 
 Arrow::Arrow(float bodyWidth, float bodyHeight, float x, float y,
              int windowWidth, int windowHeight) {
   this->windowWidth = windowWidth;
   this->windowHeight = windowHeight;
-  reset(bodyWidth, bodyHeight, x, y);
+  this->bodyWidth = bodyWidth;
+  this->bodyHeight = bodyHeight;
+  reset(x, y);
 }
 
 void Arrow::draw() {
@@ -43,7 +46,7 @@ void Arrow::rotate(float angle) {
 
 void Arrow::drawHead() {
   glBegin(GL_TRIANGLES);
-  glVertex2f(vertex[1][0], vertex[1][1]);
+  glVertex2f(vertex[4][0], vertex[4][1]);
   glVertex2f(vertex[3][0], vertex[3][1]);
   glVertex2f(vertex[2][0], vertex[2][1]);
   glEnd();
@@ -53,8 +56,8 @@ void Arrow::drawBody() {
   glBegin(GL_QUADS);
   glVertex2f(vertex[0][0], vertex[0][1]);
   glVertex2f(vertex[1][0], vertex[1][1]);
+  glVertex2f(vertex[2][0], vertex[2][1]);
   glVertex2f(vertex[3][0], vertex[3][1]);
-  glVertex2f(vertex[4][0], vertex[4][1]);
   glEnd();
 }
 
@@ -74,20 +77,20 @@ bool Arrow::hasCollidedWith(Target target) {
   return target.checkCollision(vertex[2][0], vertex[2][1]);
 }
 
-void Arrow::reset(float bodyWidth, float bodyHeight, float x, float y) {
+void Arrow::reset(float x, float y) {
   tx = x;
   ty = y;
   vertex[0][0] = tx - bodyWidth / 2;
   vertex[0][1] = ty - bodyHeight / 2;
   vertex[1][0] = tx + bodyWidth / 2;
   vertex[1][1] = ty - bodyHeight / 2;
-  vertex[2][0] = vertex[1][0] + bodyHeight;
-  vertex[2][1] = ty;
-  vertex[3][0] = tx + bodyWidth / 2;
+  vertex[2][0] = tx + bodyWidth / 2;
+  vertex[2][1] = ty + bodyHeight / 2;
+  vertex[3][0] = tx - bodyWidth / 2;
   vertex[3][1] = ty + bodyHeight / 2;
-  vertex[4][0] = tx - bodyWidth / 2;
-  vertex[4][1] = ty + bodyHeight / 2;
-  angle = 0.0f;
+  vertex[4][0] = tx;
+  vertex[4][1] = vertex[2][1] + bodyWidth;
+  angle = (90 * PI / 180);
 }
 
 bool Arrow::hasCollidedWithWindow() {
@@ -105,17 +108,15 @@ void Arrow::calculateAirbornPosition() {
   translate(dx, dy);
   vy += g * dt;
   float old_angle = angle;
-  float new_angle = atan(vy / vx);
+  float new_angle = atan2(vy, vx);
   rotate(new_angle - old_angle);
   velocity = sqrt(vx * vx + vy * vy);
   if (hasCollidedWithWindow()) {
-    printf("Arrow has collided with window\n");
-    reset(100.f, 100.f, 400.f, 300.f);
+    reset(400.f, 300.f);
     velocity = 0;
     this->airborn = false;
   } else if (ty < 0) {
-    printf("Arrow has collided with ground\n");
-    reset(100.f, 100.f, 400.f, 300.f);
+    reset(400.f, 300.f);
     velocity = 0;
     this->airborn = false;
   }

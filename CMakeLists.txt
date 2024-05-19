@@ -16,7 +16,9 @@ set (SOURCE_DIR src)
 set (SOURCE_FILES 
     ${SOURCE_DIR}/main.cpp
     ${SOURCE_DIR}/arrow.cpp
-    ${SOURCE_DIR}/target.cpp)
+    ${SOURCE_DIR}/target.cpp
+    ${SOURCE_DIR}/bow.cpp
+    )
 add_executable(archery_game ${SOURCE_FILES})
 
 target_link_libraries(archery_game ${OPENGL_LIBRARIES} ${FREEGLUT_LIBRARY} ${SOIL_LIBRARY})

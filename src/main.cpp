@@ -1,4 +1,5 @@
 #include "arrow.h"
+#include "bow.h"
 #include <GL/glut.h>
 #include <SOIL/SOIL.h>
 #include <stdio.h>
@@ -20,12 +21,13 @@ static bool shooting = false;
 
 GLuint texture;
 
-Arrow arrow(100.f, 100.f, 400.f, 300.f, windowWidth, windowHeight);
+Arrow arrow(10.f, 100.f, 400.f, 300.f, windowWidth, windowHeight);
 Target target(windowWidth, windowHeight);
+Bow bow(400.f, 300.f);
 
 void resetArrow() {
   isMoving = false;
-  arrow.reset(100.f, 100.f, 400.f, 300.f);
+  arrow.reset(400.f, 300.f);
 }
 
 void loadTexture(const char *filename) {
@@ -70,6 +72,7 @@ void display() {
     arrow.calculateAirbornPosition();
   }
 
+  bow.draw();
   target.draw();
   arrow.draw();
 
@@ -135,8 +138,10 @@ void keyboard(unsigned char key, int x, int y) {
 
   case 'l': // Rotate clockwise
     arrow.rotate(0.1f);
+    bow.rotate(0.1f);
     break;
   case 'p': // Rotate counter-clockwise
+    bow.rotate(-0.1f);
     arrow.rotate(-0.1f);
     break;
 
