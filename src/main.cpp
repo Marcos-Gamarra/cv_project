@@ -60,26 +60,16 @@ void display() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glLoadIdentity();
 
-  /* if (isMoving) {
-    arrow.moveForward(10.0f);
-    if (arrow.hasCollidedWithWindow()) {
-      printf("Arrow has collided with window\n");
-      resetArrow();
-    } else if (arrow.hasCollidedWith(target)) {
-      printf("Arrow has collided with target\n");
-      target.reset(windowWidth, windowHeight);
-      resetArrow();
-    }
-  } else if (shooting) {
-    arrow.calculateAirbornPosition();
-  } */
   if (arrow.isAirborn()) {
     if (arrow.hasCollidedWithWindow()) {
       arrow.setAirborn(false, 0.0f);
       arrow.reset(cx, cy, bow.getAngle());
+      target.resetScore();
+      target.reset(windowWidth, windowHeight);
     } else if (arrow.hasCollidedWith(target)) {
       target.reset(windowWidth, windowHeight);
       arrow.setAirborn(false, 0.0f);
+      target.incrementScore();
       arrow.reset(cx, cy, bow.getAngle());
     } else {
       arrow.calculateAirbornPosition();
@@ -135,41 +125,23 @@ void idle() {
   glutPostRedisplay();
 }
 
-// Keyboard callback function
-void keyboard(unsigned char key, int x, int y) {
+void handleSpecialKeys(int key, int x, int y) {
+  if (arrow.isAirborn()) {
+    return;
+  }
   switch (key) {
-  case 't': // Move up
-    arrow.translate(0.0f, 0.1f);
-    break;
-  case 'n': // Move down
-    arrow.translate(0.0f, -0.1f);
-    break;
-  case 's': // Move left
-    arrow.translate(-0.1f, 0.0f);
-    break;
-  case 'r': // Move right
-    arrow.translate(0.1f, 0.0f);
-    break;
-
-  case 'l': // Rotate clockwise
+  case GLUT_KEY_DOWN:
     arrow.rotate(0.1f);
     bow.rotate(0.1f);
     break;
-  case 'p': // Rotate counter-clockwise
+  case GLUT_KEY_UP:
     bow.rotate(-0.1f);
     arrow.rotate(-0.1f);
     break;
-
-  case 'w':
-    target.reset(windowWidth, windowHeight);
-    break;
-
-  case 'z':
+  case GLUT_KEY_LEFT:
     arrow.pull(10.f);
     break;
-
-  case ' ': // Space key
-  {
+  case GLUT_KEY_RIGHT: {
     float mass = 0.1f;
     float arrowPoint[2] = {arrow.getCentralPoint()[0],
                            arrow.getCentralPoint()[1]};
@@ -177,12 +149,17 @@ void keyboard(unsigned char key, int x, int y) {
     break;
   }
 
+    // Request to redraw the scene with updated parameters
+    glutPostRedisplay();
+  }
+}
+
+void handleKeyboard(unsigned char key, int x, int y) {
+  switch (key) {
   case 27: // Escape key
     exit(0);
     break;
   }
-
-  // Request to redraw the scene with updated parameters
   glutPostRedisplay();
 }
 
@@ -223,12 +200,13 @@ int main(int argc, char **argv) {
 
   init();
 
+  glutSpecialFunc(handleSpecialKeys);
   glutDisplayFunc(display);
   glutReshapeFunc(reshape);
   glutIdleFunc(idle);
-  glutKeyboardFunc(keyboard);
   glutMouseFunc(mouse);
   glutMotionFunc(motion);
+  glutKeyboardFunc(handleKeyboard);
 
   glutMainLoop();
   return 0;

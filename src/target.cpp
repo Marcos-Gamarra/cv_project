@@ -5,18 +5,17 @@
 Target::Target(int windowWidth, int windowHeight) {
   this->windowWidth = windowWidth;
   this->windowHeight = windowHeight;
+  this->score = 0;
   reset(windowWidth, windowHeight);
 }
 
 void Target::reset(int windowWidth, int windowHeight) {
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<int> height_dis(windowHeight / 4,
-                                                windowHeight / 2);
-  this->height = height_dis(gen);
+  this->height = windowHeight / (score + 2);
   std::uniform_int_distribution<int> vertex_dis(0, windowHeight - height);
   this->y = vertex_dis(gen);
-  this->width = 100;
+  this->width = 50;
   this->x = windowWidth - width;
 }
 
@@ -33,3 +32,6 @@ bool Target::checkCollision(int vertex_x, int vertex_y) {
   return (vertex_x >= this->x && vertex_x <= (this->x + this->width) &&
           vertex_y >= this->y && (vertex_y <= this->y + this->height));
 }
+
+void Target::resetScore() { this->score = 0; }
+void Target::incrementScore() { this->score++; }
