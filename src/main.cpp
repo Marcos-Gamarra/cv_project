@@ -1,5 +1,6 @@
 #include "arrow.h"
 #include "bow.h"
+#include "spring.h"
 #include <GL/glut.h>
 #include <SOIL/SOIL.h>
 #include <stdio.h>
@@ -21,14 +22,17 @@ static bool shooting = false;
 
 GLuint texture;
 
+const float cx = 400.0f;
+const float cy = 300.0f;
+
 Target target(windowWidth, windowHeight);
-Bow bow(400.f, 300.f);
-Arrow arrow(10.f, 100.f, 400.f, 300.f, bow.getAngle(), windowWidth,
-            windowHeight);
+Bow bow(cx, cy);
+Arrow arrow(10.f, 200.f, cx, cy, bow.getAngle(), windowWidth, windowHeight);
+Spring spring(0.1f, cx, cy);
 
 void resetArrow() {
   isMoving = false;
-  arrow.reset(400.f, 300.f, bow.getAngle());
+  arrow.reset(cx, cy, bow.getAngle());
 }
 
 void loadTexture(const char *filename) {
@@ -72,11 +76,11 @@ void display() {
   if (arrow.isAirborn()) {
     if (arrow.hasCollidedWithWindow()) {
       arrow.setAirborn(false, 0.0f);
-      arrow.reset(400.f, 300.f, bow.getAngle());
+      arrow.reset(cx, cy, bow.getAngle());
     } else if (arrow.hasCollidedWith(target)) {
       target.reset(windowWidth, windowHeight);
       arrow.setAirborn(false, 0.0f);
-      arrow.reset(400.f, 300.f, bow.getAngle());
+      arrow.reset(cx, cy, bow.getAngle());
     } else {
       arrow.calculateAirbornPosition();
     }
@@ -85,6 +89,7 @@ void display() {
   bow.draw();
   target.draw();
   arrow.draw();
+  spring.draw(bow.getFirstPoint(), arrow.getCentralPoint(), bow.getLastPoint());
 
   glutSwapBuffers();
 }
@@ -159,9 +164,19 @@ void keyboard(unsigned char key, int x, int y) {
     target.reset(windowWidth, windowHeight);
     break;
 
-  case ' ': // Space key
-    arrow.setAirborn(true, 100.0f);
+  case 'z':
+    arrow.pull(10.f);
     break;
+
+  case ' ': // Space key
+  {
+    float mass = 0.1f;
+    float arrowPoint[2] = {arrow.getCentralPoint()[0],
+                           arrow.getCentralPoint()[1]};
+    arrow.setAirborn(true, spring.getArrowInitialSpeed(mass, arrowPoint));
+    break;
+  }
+
   case 27: // Escape key
     exit(0);
     break;
@@ -210,10 +225,10 @@ int main(int argc, char **argv) {
 
   glutDisplayFunc(display);
   glutReshapeFunc(reshape);
-  glutIdleFunc(idle);         // Register the idle function
-  glutKeyboardFunc(keyboard); // Register the keyboard function
-  glutMouseFunc(mouse);       // Register the mouse function
-  glutMotionFunc(motion);     // Register the motion function for drag
+  glutIdleFunc(idle);
+  glutKeyboardFunc(keyboard);
+  glutMouseFunc(mouse);
+  glutMotionFunc(motion);
 
   glutMainLoop();
   return 0;

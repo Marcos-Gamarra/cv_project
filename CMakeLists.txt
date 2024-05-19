@@ -18,6 +18,7 @@ set (SOURCE_FILES
     ${SOURCE_DIR}/arrow.cpp
     ${SOURCE_DIR}/target.cpp
     ${SOURCE_DIR}/bow.cpp
+    ${SOURCE_DIR}/spring.cpp
     )
 add_executable(archery_game ${SOURCE_FILES})
 

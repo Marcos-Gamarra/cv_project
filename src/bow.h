@@ -7,6 +7,8 @@ public:
   void draw();
   void rotate(float angle);
   float getAngle();
+  float *getFirstPoint() { return points[0]; }
+  float *getLastPoint() { return points[299]; }
 
 private:
   float angle;
