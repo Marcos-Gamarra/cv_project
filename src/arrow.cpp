@@ -6,12 +6,14 @@
 const float PI = 3.14159265358979323846;
 
 Arrow::Arrow(float bodyWidth, float bodyHeight, float x, float y,
-             int windowWidth, int windowHeight) {
+             float initialAngle, int windowWidth, int windowHeight) {
   this->windowWidth = windowWidth;
   this->windowHeight = windowHeight;
   this->bodyWidth = bodyWidth;
   this->bodyHeight = bodyHeight;
-  reset(x, y);
+  reset(x, y, initialAngle);
+  this->velocity = 0.0f;
+  this->airborn = false;
 }
 
 void Arrow::draw() {
@@ -77,7 +79,7 @@ bool Arrow::hasCollidedWith(Target target) {
   return target.checkCollision(vertex[2][0], vertex[2][1]);
 }
 
-void Arrow::reset(float x, float y) {
+void Arrow::reset(float x, float y, float angle) {
   tx = x;
   ty = y;
   vertex[0][0] = tx - bodyWidth / 2;
@@ -90,7 +92,8 @@ void Arrow::reset(float x, float y) {
   vertex[3][1] = ty + bodyHeight / 2;
   vertex[4][0] = tx;
   vertex[4][1] = vertex[2][1] + bodyWidth;
-  angle = (90 * PI / 180);
+  rotate(angle - (90.0f * PI) / 180.0f);
+  this->angle = angle;
 }
 
 bool Arrow::hasCollidedWithWindow() {
@@ -111,15 +114,6 @@ void Arrow::calculateAirbornPosition() {
   float new_angle = atan2(vy, vx);
   rotate(new_angle - old_angle);
   velocity = sqrt(vx * vx + vy * vy);
-  if (hasCollidedWithWindow()) {
-    reset(400.f, 300.f);
-    velocity = 0;
-    this->airborn = false;
-  } else if (ty < 0) {
-    reset(400.f, 300.f);
-    velocity = 0;
-    this->airborn = false;
-  }
 }
 
 void Arrow::setVelocity(float velocity) { this->velocity = velocity; }

@@ -7,14 +7,14 @@ const float GRAVITY = 9.8f;
 
 class Arrow {
 public:
-  Arrow(float bodyWidth, float bodyHeight, float x, float y, int windowWidth,
-        int windowHeight);
+  Arrow(float bodyWidth, float bodyHeight, float x, float y, float initialAngle,
+        int windowWidth, int windowHeight);
   void draw();
   void transform(float x, float y, float angle);
   void translate(float x, float y);
   void rotate(float angle);
   void moveForward(float distance);
-  void reset(float x, float y);
+  void reset(float x, float y, float angle);
   void calculateAirbornPosition();
   bool hasCollidedWith(Target target);
   bool hasCollidedWithWindow();

@@ -21,13 +21,14 @@ static bool shooting = false;
 
 GLuint texture;
 
-Arrow arrow(10.f, 100.f, 400.f, 300.f, windowWidth, windowHeight);
 Target target(windowWidth, windowHeight);
 Bow bow(400.f, 300.f);
+Arrow arrow(10.f, 100.f, 400.f, 300.f, bow.getAngle(), windowWidth,
+            windowHeight);
 
 void resetArrow() {
   isMoving = false;
-  arrow.reset(400.f, 300.f);
+  arrow.reset(400.f, 300.f, bow.getAngle());
 }
 
 void loadTexture(const char *filename) {
@@ -69,7 +70,16 @@ void display() {
     arrow.calculateAirbornPosition();
   } */
   if (arrow.isAirborn()) {
-    arrow.calculateAirbornPosition();
+    if (arrow.hasCollidedWithWindow()) {
+      arrow.setAirborn(false, 0.0f);
+      arrow.reset(400.f, 300.f, bow.getAngle());
+    } else if (arrow.hasCollidedWith(target)) {
+      target.reset(windowWidth, windowHeight);
+      arrow.setAirborn(false, 0.0f);
+      arrow.reset(400.f, 300.f, bow.getAngle());
+    } else {
+      arrow.calculateAirbornPosition();
+    }
   }
 
   bow.draw();

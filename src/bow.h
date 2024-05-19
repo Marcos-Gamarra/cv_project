@@ -6,6 +6,7 @@ public:
   Bow(float centerX, float centerY);
   void draw();
   void rotate(float angle);
+  float getAngle();
 
 private:
   float angle;
