@@ -1,18 +1,15 @@
 #include "arrow.h"
 #include "bow.h"
 #include "spring.h"
-#include <GL/glut.h>
+#include <GL/freeglut.h>
 #include <SOIL/SOIL.h>
 #include <stdio.h>
 
-// Define the rotation angle and translation offsets
-static float angle = 0.0f;
-static float tx = 0.0f, ty = 0.0f, tz = 0.0f;
+const float PI = 3.14159265358979323846;
 
-// Define a flag to control the rotation and drag
-static bool isMoving = false;
 static bool isDragging = false;
-static int lastMouseX, lastMouseY;
+static int mouseClickX, mouseClickY;
+static int prevMouseX, prevMouseY;
 
 static int windowWidth = 800;
 static int windowHeight = 600;
@@ -26,14 +23,11 @@ const float cx = 400.0f;
 const float cy = 300.0f;
 
 Target target(windowWidth, windowHeight);
-Bow bow(cx, cy);
-Arrow arrow(10.f, 200.f, cx, cy, bow.getAngle(), windowWidth, windowHeight);
+float arrowInitialAngle = (-45.0f * PI) / 180.0f;
+Bow bow(cx, cy, arrowInitialAngle);
+Arrow arrow(10.f, 200.f, cx, cy, bow.getAngle(), windowWidth, windowHeight,
+            170.f);
 Spring spring(0.1f, cx, cy);
-
-void resetArrow() {
-  isMoving = false;
-  arrow.reset(cx, cy, bow.getAngle());
-}
 
 void loadTexture(const char *filename) {
   glGenTextures(1, &texture);
@@ -62,13 +56,11 @@ void display() {
 
   if (arrow.isAirborn()) {
     if (arrow.hasCollidedWithWindow()) {
-      arrow.setAirborn(false, 0.0f);
       arrow.reset(cx, cy, bow.getAngle());
       target.resetScore();
       target.reset(windowWidth, windowHeight);
     } else if (arrow.hasCollidedWith(target)) {
       target.reset(windowWidth, windowHeight);
-      arrow.setAirborn(false, 0.0f);
       target.incrementScore();
       arrow.reset(cx, cy, bow.getAngle());
     } else {
@@ -79,7 +71,7 @@ void display() {
   bow.draw();
   target.draw();
   arrow.draw();
-  spring.draw(bow.getFirstPoint(), arrow.getCentralPoint(), bow.getLastPoint());
+  spring.draw(bow.getFirstPoint(), arrow.getArrowTail(), bow.getLastPoint());
 
   glutSwapBuffers();
 }
@@ -118,12 +110,7 @@ void reshape(int w, int h) {
 }
 
 // Idle callback function
-void idle() {
-  // Update the rotation angle if rotating
-
-  // Request to redraw the scene
-  glutPostRedisplay();
-}
+void idle() { glutPostRedisplay(); }
 
 void handleSpecialKeys(int key, int x, int y) {
   if (arrow.isAirborn()) {
@@ -131,26 +118,15 @@ void handleSpecialKeys(int key, int x, int y) {
   }
   switch (key) {
   case GLUT_KEY_DOWN:
-    arrow.rotate(0.1f);
-    bow.rotate(0.1f);
     break;
   case GLUT_KEY_UP:
-    bow.rotate(-0.1f);
-    arrow.rotate(-0.1f);
+    bow.rotateRelative(-0.1f);
     break;
   case GLUT_KEY_LEFT:
-    arrow.pull(10.f);
     break;
   case GLUT_KEY_RIGHT: {
-    float mass = 0.1f;
-    float arrowPoint[2] = {arrow.getCentralPoint()[0],
-                           arrow.getCentralPoint()[1]};
-    arrow.setAirborn(true, spring.getArrowInitialSpeed(mass, arrowPoint));
     break;
   }
-
-    // Request to redraw the scene with updated parameters
-    glutPostRedisplay();
   }
 }
 
@@ -160,34 +136,43 @@ void handleKeyboard(unsigned char key, int x, int y) {
     exit(0);
     break;
   }
-  glutPostRedisplay();
 }
 
 // Mouse callback function
 void mouse(int button, int state, int x, int y) {
-  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-    isMoving = true; // Start rotation on left click
+  if (button == GLUT_LEFT_BUTTON) {
+    isDragging = true;
+    mouseClickX = x;
+    mouseClickY = y;
+    prevMouseX = x;
+    prevMouseY = y;
   }
-  if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
-    isMoving = false; // Stop rotation on right click
 
-    // Request to redraw the scene with updated parameters
-    glutPostRedisplay();
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+    if (isDragging) {
+      float arrowMass = 0.1f;
+      arrow.release(
+          spring.getArrowInitialSpeed(arrowMass, arrow.getArrowTail()));
+    }
+    isDragging = false;
   }
 }
+
 // Mouse motion callback function
 void motion(int x, int y) {
   if (isDragging) {
-    int dx = x - lastMouseX;
-    int dy = y - lastMouseY;
-
-    tx += dx * 0.01f;
-    ty -= dy * 0.01f; // Reverse y-axis direction for intuitive drag
-    lastMouseX = x;
-    lastMouseY = y;
-
-    // Request to redraw the scene with updated parameters
-    glutPostRedisplay();
+    if (arrow.isAirborn()) {
+      return;
+    }
+    float angle = atan2(y - mouseClickY, mouseClickX - x);
+    float pullingDistance =
+        sqrt(pow(mouseClickX - x, 2) + pow(mouseClickY - y, 2));
+    float deltaX = x - prevMouseX;
+    float deltaY = prevMouseY - y;
+    arrow.pull(deltaX, deltaY, angle, pullingDistance);
+    bow.rotateAbsolute(angle);
+    prevMouseX = x;
+    prevMouseY = y;
   }
 }
 
@@ -196,7 +181,7 @@ int main(int argc, char **argv) {
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
   glutInitWindowSize(windowWidth, windowHeight);
-  glutCreateWindow("");
+  glutCreateWindow("Bow and Arrow");
 
   init();
 

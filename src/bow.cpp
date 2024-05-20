@@ -7,7 +7,7 @@ float spline(float x, float scale, float horizontalOffset,
 
 const float PI = 3.14159265358979323846;
 
-Bow::Bow(float centerX, float centerY) {
+Bow::Bow(float centerX, float centerY, float initialAngle) {
   cx = centerX;
   cy = centerY;
   int startX = centerX - 150;
@@ -21,7 +21,9 @@ Bow::Bow(float centerX, float centerY) {
     points[299 - x][1] = points[x][1];
     glVertex2f(points[299 - x][0], points[299 - x][1]);
   }
+
   this->angle = (90.0f * PI) / 180.0f;
+  rotateRelative(initialAngle);
 }
 
 void Bow::draw() {
@@ -32,7 +34,7 @@ void Bow::draw() {
   glEnd();
 }
 
-void Bow::rotate(float angle) {
+void Bow::rotateRelative(float angle) {
   this->angle += angle;
   for (int i = 0; i < 300; i++) {
     float x = points[i][0] - cx;
@@ -53,3 +55,5 @@ float spline(float x, float scale, float horizontalOffset,
 }
 
 float Bow::getAngle() { return this->angle; }
+
+void Bow::rotateAbsolute(float angle) { rotateRelative(angle - this->angle); }

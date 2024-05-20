@@ -20,7 +20,7 @@ void Spring::draw(float initialPoint[2], float middlePoint[2],
   glBegin(GL_LINES);
   glVertex2f(initialPoint[0], initialPoint[1]);
 
-  if (cx > middlePoint[0]) {
+  if (middlePoint[0] < cx) {
     glVertex2f(middlePoint[0], middlePoint[1]);
     glVertex2f(middlePoint[0], middlePoint[1]);
   }
