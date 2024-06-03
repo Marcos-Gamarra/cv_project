@@ -35,3 +35,4 @@ bool Target::checkCollision(int vertex_x, int vertex_y) {
 
 void Target::resetScore() { this->score = 0; }
 void Target::incrementScore() { this->score++; }
+int Target::getScore() { return this->score; }

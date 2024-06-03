@@ -9,6 +9,7 @@ public:
   bool checkCollision(int vertex_x, int vertex_y);
   void resetScore();
   void incrementScore();
+  int getScore();
 
 private:
   int score;
